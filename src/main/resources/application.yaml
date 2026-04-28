@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: ExtractorInfoDB
+
+  output:
+    ansi:
+      enabled: ALWAYS
+
+server:
+  port: 2025
+
+# Configuración de base de datos profesional
+# Estos valores pueden ser sobrescritos por variables de entorno (ej: DB_PASSWORD)
+db:
+  server: ${DB_SERVER:MAXIMILIANO\SQLEXPRESS}
+  username: ${DB_USERNAME:Maximiliano_Andres}
+  password: ${DB_PASSWORD:Maximiliano_Andres}
+  databases:
+    municipal: ${DB_DATABASE:Rem_Municipal}
+    honorarios: ${DB_DATABASE_DOS:Rem_Honorarios}
+    mun-pae: ${DB_DATABASE_TRES:Rem_MunPae}
+    renta-rrhh: ${DB_DATABASE_CUATRO:Renta_RRHH}
