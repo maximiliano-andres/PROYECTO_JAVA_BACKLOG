@@ -51,11 +51,10 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- HikariCP — connection pool de mayor rendimiento -->
+		<!-- Spring Boot JDBC (Activa la autoconfiguración del DataSource e incluye HikariCP) -->
 		<dependency>
-			<groupId>com.zaxxer</groupId>
-			<artifactId>HikariCP</artifactId>
-			<version>5.1.0</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
 		</dependency>
 
 		<!-- Driver JDBC para SQL Server -->

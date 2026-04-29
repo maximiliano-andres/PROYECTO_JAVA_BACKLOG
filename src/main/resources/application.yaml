@@ -6,6 +6,20 @@ spring:
     ansi:
       enabled: ALWAYS
 
+  datasource:
+    url: jdbc:sqlserver://${DB_SERVER:MAXIMILIANO\SQLEXPRESS};databaseName=${DB_DATABASE_DOS:Rem_Honorarios};encrypt=true;trustServerCertificate=true
+    username: ${DB_USERNAME:Maximiliano_Andres}
+    password: ${DB_PASSWORD:Maximiliano_Andres}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    hikari:
+      pool-name: SQLServer-Pool
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 5000
+
 server:
   port: 2025
 
