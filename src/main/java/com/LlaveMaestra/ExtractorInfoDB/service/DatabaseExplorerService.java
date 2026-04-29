@@ -103,7 +103,14 @@ public class DatabaseExplorerService {
         String sql = String.format("SELECT TOP (%d) * FROM %s", safeLimit, safeName);
 
         log.info("Visualizando datos: {}", sql);
-        return jdbcTemplate.queryForList(sql);
+        List<Map<String, Object>> rawData = jdbcTemplate.queryForList(sql);
+        
+        // Normalizar claves a minúsculas para coincidir con la lógica del frontend
+        return rawData.stream().map(row -> {
+            java.util.Map<String, Object> lowerRow = new java.util.LinkedHashMap<>();
+            row.forEach((k, v) -> lowerRow.put(k.toLowerCase(), v));
+            return lowerRow;
+        }).collect(java.util.stream.Collectors.toList());
     }
 
     private boolean tableExists(String database, String schema, String table) throws SQLException {
