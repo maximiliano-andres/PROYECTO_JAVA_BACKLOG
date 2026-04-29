@@ -27,8 +27,8 @@ public class HistoricoProyectoJdbcRepositoryImpl implements HistoricoProyectoRep
         private final JdbcTemplate jdbcTemplate;
 
         // SQL como constante — compilado una sola vez, reutilizable
-        private static final String SQL_TOP_DIEZ = """
-                        SELECT TOP (100000)
+        private static final String SQL_TOP_MIL = """
+                        SELECT TOP (1000)
                         [Id_Area], [Id_Funcionario], [Id_Proyecto],
                         [Mes], [Ano],
                         [Fec_InicioContrato], [Fec_FinalContrato],
@@ -41,7 +41,7 @@ public class HistoricoProyectoJdbcRepositoryImpl implements HistoricoProyectoRep
                         FROM [Rem_Honorarios].[dbo].[HistoricoProyecto_Honorarios]
                         """;
 
-        private static final String SQL_BY_ANIO_MES = SQL_TOP_DIEZ
+        private static final String SQL_BY_ANIO_MES = SQL_TOP_MIL
                         .replace("SELECT TOP (10)", "SELECT TOP (10)")
                         + " WHERE [Ano] = ? AND [Mes] = ?";
 
@@ -50,9 +50,9 @@ public class HistoricoProyectoJdbcRepositoryImpl implements HistoricoProyectoRep
         private static final RowMapper<HistoricoProyecto> ROW_MAPPER = new HistoricoProyectoRowMapper();
 
         @Override
-        public List<HistoricoProyecto> findTopDiez() {
-                log.debug("Ejecutando consulta: findTopDiez");
-                return jdbcTemplate.query(SQL_TOP_DIEZ, ROW_MAPPER);
+        public List<HistoricoProyecto> findTopMil() {
+                log.debug("Ejecutando consulta: findTopMil");
+                return jdbcTemplate.query(SQL_TOP_MIL, ROW_MAPPER);
         }
 
         @Override

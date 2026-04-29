@@ -28,7 +28,7 @@ public class HistoricoProyectoController {
      */
     @GetMapping("/top")
     public ResponseEntity<List<HistoricoProyectoResponse>> obtenerTop() {
-        return ResponseEntity.ok(service.obtenerTopDiez());
+        return ResponseEntity.ok(service.obtenerTopMil());
     }
 
     /**

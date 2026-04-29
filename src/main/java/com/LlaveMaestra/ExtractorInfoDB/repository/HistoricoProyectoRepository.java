@@ -8,7 +8,7 @@ import java.util.List;
  * Principio: I (Interface Segregation) + D (Dependency Inversion).
  */
 public interface HistoricoProyectoRepository {
-    List<HistoricoProyecto> findTopDiez();
+    List<HistoricoProyecto> findTopMil();
 
     List<HistoricoProyecto> findByAnioYMes(int anio, int mes);
 }

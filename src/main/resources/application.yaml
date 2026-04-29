@@ -13,12 +13,12 @@ spring:
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     hikari:
       pool-name: SQLServer-Pool
-      maximum-pool-size: 10
-      minimum-idle: 2
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-      leak-detection-threshold: 5000
+      maximum-pool-size: 10 # cantidad de conexiones activas a la base de datos
+      minimum-idle: 2 # cantidad de conexiones inactivas a la base de datos
+      connection-timeout: 30000 # tiempo maximo de espera para obtener una conexion
+      idle-timeout: 600000 # tiempo maximo de inactividad de una conexion
+      max-lifetime: 1800000 # tiempo maximo de vida de una conexion
+      leak-detection-threshold: 5000 # tiempo maximo de espera para obtener una conexion
 
 server:
   port: 2025

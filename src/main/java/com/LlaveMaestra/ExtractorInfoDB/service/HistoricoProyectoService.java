@@ -22,9 +22,9 @@ public class HistoricoProyectoService {
 
     private final HistoricoProyectoRepository repository;
 
-    public List<HistoricoProyectoResponse> obtenerTopDiez() {
-        log.info("Obteniendo top 10 historicos de proyectos");
-        var dominio = repository.findTopDiez();
+    public List<HistoricoProyectoResponse> obtenerTopMil() {
+        log.info("Obteniendo top 1000 historicos de proyectos");
+        var dominio = repository.findTopMil();
         log.info("Se obtuvieron {} registros", dominio.size());
         return HistoricoProyectoResponse.fromList(dominio);
     }
