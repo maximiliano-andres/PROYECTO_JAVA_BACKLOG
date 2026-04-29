@@ -1,44 +1,60 @@
-// controller/HistoricoProyectoController.java
 package com.LlaveMaestra.ExtractorInfoDB.controller;
 
-import com.LlaveMaestra.ExtractorInfoDB.dto.response.HistoricoProyectoResponse;
+import com.LlaveMaestra.ExtractorInfoDB.adapter.HistoricoProyecto;
+import com.LlaveMaestra.ExtractorInfoDB.database.DynamicQueryExecutor;
 import com.LlaveMaestra.ExtractorInfoDB.service.HistoricoProyectoService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-/**
- * Controlador REST — solo maneja HTTP, delega todo al servicio.
- * Principio: S (Single Responsibility) — capa HTTP pura.
- */
-@Slf4j
 @RestController
-@RequestMapping("/api/v1/historico-proyectos")
-@RequiredArgsConstructor
+@RequestMapping("/api/v1/proyectos")
 public class HistoricoProyectoController {
 
     private final HistoricoProyectoService service;
+    private final DynamicQueryExecutor executor;
 
-    /**
-     * GET /api/v1/historico-proyectos/top
-     * Retorna los 10 primeros registros de HistoricoProyecto_Honorarios
-     */
-    @GetMapping("/top")
-    public ResponseEntity<List<HistoricoProyectoResponse>> obtenerTop() {
-        return ResponseEntity.ok(service.obtenerTopMil());
+    public HistoricoProyectoController(HistoricoProyectoService service,
+            DynamicQueryExecutor executor) {
+        this.service = service;
+        this.executor = executor;
+    }
+
+    @PostMapping("/query")
+    public ResponseEntity<List<HistoricoProyecto>> ejecutarQuery(
+            @RequestBody QueryRequest request) {
+
+        List<HistoricoProyecto> data = service.obtener(request.getSql());
+        return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/historico")
+    public List<HistoricoProyecto> getHistorico() {
+        return service.obtener("SELECT TOP (100) * FROM HistoricoProyecto_Honorarios");
+        // return service.obtener("SELECT TOP (100) * FROM Bancos");
     }
 
     /**
-     * GET /api/v1/historico-proyectos?anio=2024&mes=3
-     * Filtra por año y mes
+     * DIAGNÓSTICO: muestra las columnas reales de la tabla y una fila de ejemplo.
+     * Llamar a: GET /api/v1/proyectos/columnas
      */
-    @GetMapping
-    public ResponseEntity<List<HistoricoProyectoResponse>> obtenerPorFiltro(
-            @RequestParam int anio,
-            @RequestParam int mes) {
-        return ResponseEntity.ok(service.obtenerPorAnioYMes(anio, mes));
+    public ResponseEntity<List<Map<String, Object>>> verColumnas() {
+        List<Map<String, Object>> fila = executor.execute(
+                "SELECT TOP 1 * FROM HistoricoProyecto_Honorarios");
+        return ResponseEntity.ok(fila);
+    }
+
+    /**
+     * DIAGNÓSTICO: muestra todas las tablas disponibles en la base de datos activa.
+     * Llamar a: GET /api/v1/proyectos/tablas
+     */
+    @GetMapping("/tablas")
+    public ResponseEntity<List<Map<String, Object>>> verTablas() {
+        List<Map<String, Object>> tablas = executor.execute(
+                "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME");
+        return ResponseEntity.ok(tablas);
     }
 }
