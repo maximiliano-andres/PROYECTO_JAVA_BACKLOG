@@ -3,42 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Database Explorer</title>
+    <title>Explorador Modo Prueba</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Sidebar: Database Selection -->
-    <aside class="sidebar">
+    <!-- Mobile Toggle -->
+    <button id="menuToggle" class="menu-toggle">☰</button>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
         <h2>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4.97 0-9-1.79-9-4s4.03-4 9-4 9 1.79 9 4-4.03 4-9 4Z"/><path d="M3 7c0 2.21 4.03 4 9 4s9-1.79 9-4-4.03-4-9-4-9 1.79-9 4Z"/><path d="M21 7v10"/><path d="M3 7v10"/><path d="M12 11v10"/></svg>
-            Explorer
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 21c-4.97 0-9-1.79-9-4s4.03-4 9-4 9 1.79 9 4-4.03 4-9 4Z"/>
+                <path d="M3 7c0 2.21 4.03 4 9 4s9-1.79 9-4-4.03-4-9-4-9 1.79-9 4Z"/>
+            </svg>
+            Explorador de Datos
         </h2>
-        
+
         <div id="dbList" class="db-list">
-            <!-- Databases will be injected here -->
-            <div class="loader">Cargando bases...</div>
+            <div class="loader"><div class="spinner"></div></div>
         </div>
     </aside>
 
-    <!-- Main Content: Tables and Data -->
+    <!-- Main -->
     <main class="main-content">
         <header class="header">
             <div>
-                <h1 id="currentDb" style="margin:0; font-size: 1.5rem; color: var(--primary);">Seleccione una DB</h1>
-                <p id="currentTable" style="margin:0; font-size: 0.9rem; color: var(--text-dim);">Explorador de metadatos empresarial</p>
-            </div>
-            <div id="actions">
-                <!-- Actions like Export or Refresh -->
+                <h1 id="currentDb">Seleccione una DB</h1>
+                <p id="currentTable">Explorador de Metadatos</p>
             </div>
         </header>
 
         <section id="viewArea" class="view-area">
             <div class="empty-state">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 20px; opacity: 0.5;"><path d="M12 2v20"/><path d="m5 9 7-7 7 7"/><path d="m5 15 7 7 7-7"/></svg>
-                <p>Seleccione una base de datos de la izquierda para comenzar la exploración.</p>
+                <p>Seleccione una base de datos para comenzar.</p>
             </div>
-        </section> section
+        </section>
     </main>
 
     <script src="app.js"></script>
