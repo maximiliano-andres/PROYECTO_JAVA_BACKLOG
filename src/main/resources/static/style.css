@@ -193,13 +193,49 @@ tr:hover td {
     border: none;
 }
 
-.btn-primary {
-    background: linear-gradient(135deg, #38bdf8, #6366f1);
-    color: white;
-}
-
 .btn-primary:hover {
     opacity: 0.9;
+}
+
+/* ===== PAGINATION ===== */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.pagination-info {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+}
+
+.pagination-info b {
+    color: var(--primary);
+}
+
+.pagination-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
 }
 
 /* ===== LOADER ===== */

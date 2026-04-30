@@ -3,6 +3,7 @@ package com.LlaveMaestra.ExtractorInfoDB.service;
 import com.LlaveMaestra.ExtractorInfoDB.dto.ColumnInfo;
 import com.LlaveMaestra.ExtractorInfoDB.dto.DatabaseInfo;
 import com.LlaveMaestra.ExtractorInfoDB.dto.TableInfo;
+import com.LlaveMaestra.ExtractorInfoDB.dto.PageData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -49,14 +50,13 @@ public class DatabaseExplorerService {
         try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
             // null para schema y table name pattern para traer todo
-            try (ResultSet rs = metaData.getTables(database, null, "%", new String[]{"TABLE", "VIEW"})) {
+            try (ResultSet rs = metaData.getTables(database, "dbo", "%", new String[] { "TABLE", "VIEW" })) {
                 while (rs.next()) {
                     tables.add(new TableInfo(
                             rs.getString("TABLE_NAME"),
                             rs.getString("TABLE_CAT"),
                             rs.getString("TABLE_SCHEM"),
-                            rs.getString("TABLE_TYPE")
-                    ));
+                            rs.getString("TABLE_TYPE")));
                 }
             }
         }
@@ -77,8 +77,7 @@ public class DatabaseExplorerService {
                             rs.getString("TYPE_NAME"),
                             rs.getInt("COLUMN_SIZE"),
                             "YES".equals(rs.getString("IS_NULLABLE")),
-                            rs.getInt("ORDINAL_POSITION")
-                    ));
+                            rs.getInt("ORDINAL_POSITION")));
                 }
             }
         }
@@ -86,31 +85,48 @@ public class DatabaseExplorerService {
     }
 
     /**
-     * Ejecuta una consulta segura para visualizar datos de una tabla seleccionada.
+     * Obtiene el total de registros en una tabla.
      */
-    public List<Map<String, Object>> getTableData(String database, String schema, String table, int limit) throws SQLException {
-        // Validación de seguridad: Verificar que la tabla existe en los metadatos
+    public long countTableRows(String database, String schema, String table) {
+        String safeName = String.format("[%s].[%s].[%s]", database, schema, table);
+        String sql = "SELECT COUNT(*) FROM " + safeName;
+        Long count = jdbcTemplate.queryForObject(sql, Long.class);
+        return count != null ? count : 0L;
+    }
+
+    /**
+     * Ejecuta una consulta segura y paginada para visualizar datos.
+     */
+    public PageData<Map<String, Object>> getTableData(String database, String schema, String table, int page, int size)
+            throws SQLException {
+        
         if (!tableExists(database, schema, table)) {
-            log.error("Intento de acceso a tabla inexistente o no autorizada: {}.{}.{}", database, schema, table);
-            throw new IllegalArgumentException("La tabla especificada no existe o no tiene permisos de acceso.");
+            log.error("Intento de acceso a tabla inexistente: {}.{}.{}", database, schema, table);
+            throw new IllegalArgumentException("La tabla especificada no existe.");
         }
 
-        // Construcción segura del nombre (escapando con corchetes para SQL Server)
+        long totalElements = countTableRows(database, schema, table);
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        int offset = page * size;
+
         String safeName = String.format("[%s].[%s].[%s]", database, schema, table);
         
-        // Limitar el número de filas para escalabilidad y rendimiento
-        int safeLimit = Math.min(limit, 1000); 
-        String sql = String.format("SELECT TOP (%d) * FROM %s", safeLimit, safeName);
+        // Paginación profesional para SQL Server (2012+)
+        String sql = String.format(
+            "SELECT * FROM %s ORDER BY (SELECT NULL) OFFSET %d ROWS FETCH NEXT %d ROWS ONLY",
+            safeName, offset, size
+        );
 
-        log.info("Visualizando datos: {}", sql);
+        log.info("Visualizando datos (Página {}): {}", page, sql);
         List<Map<String, Object>> rawData = jdbcTemplate.queryForList(sql);
-        
-        // Normalizar claves a minúsculas para coincidir con la lógica del frontend
-        return rawData.stream().map(row -> {
+
+        List<Map<String, Object>> content = rawData.stream().map(row -> {
             java.util.Map<String, Object> lowerRow = new java.util.LinkedHashMap<>();
             row.forEach((k, v) -> lowerRow.put(k.toLowerCase(), v));
             return lowerRow;
         }).collect(java.util.stream.Collectors.toList());
+
+        return new PageData<>(content, totalElements, totalPages, page, size);
     }
 
     private boolean tableExists(String database, String schema, String table) throws SQLException {

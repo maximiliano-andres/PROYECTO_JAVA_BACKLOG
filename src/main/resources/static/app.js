@@ -1,8 +1,14 @@
 const state = {
     selectedDb: null,
     selectedTable: null,
+    selectedSchema: null,
     databases: [],
-    tables: []
+    tables: [],
+    currentPage: 0,
+    pageSize: 500,
+    totalPages: 0,
+    totalElements: 0,
+    currentColumns: []
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -34,7 +40,14 @@ async function loadDatabases() {
 
     try {
         const res = await fetch('/api/v1/explorer/databases');
-        state.databases = await res.json();
+        const wrapper = await res.json();
+        
+        if (!wrapper.ok) {
+            container.innerHTML = renderError(wrapper.descripcion);
+            return;
+        }
+        
+        state.databases = wrapper.data || [];
         renderDatabases();
     } catch (e) {
         container.innerHTML = renderError(e.message);
@@ -50,28 +63,54 @@ async function loadTables(db) {
 
     try {
         const res = await fetch(`/api/v1/explorer/tables?database=${db}`);
-        state.tables = await res.json();
+        const wrapper = await res.json();
+        
+        if (!wrapper.ok) {
+            view.innerHTML = renderError(wrapper.descripcion);
+            return;
+        }
+        
+        state.tables = wrapper.data || [];
         renderTables();
     } catch (e) {
         view.innerHTML = renderError(e.message);
     }
 }
 
-async function loadTableData(table, schema) {
+async function loadTableData(table, schema, page = 0) {
     state.selectedTable = table;
+    state.selectedSchema = schema;
+    state.currentPage = page;
 
     const view = document.getElementById('viewArea');
     view.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
 
     try {
-        const [cols, data] = await Promise.all([
+        const [colsWrapper, dataWrapper] = await Promise.all([
             fetch(`/api/v1/explorer/columns?database=${state.selectedDb}&schema=${schema}&table=${table}`).then(r => r.json()),
-            fetch(`/api/v1/explorer/data?database=${state.selectedDb}&schema=${schema}&table=${table}&limit=50`).then(r => r.json())
+            fetch(`/api/v1/explorer/data?database=${state.selectedDb}&schema=${schema}&table=${table}&page=${page}&size=${state.pageSize}`).then(r => r.json())
         ]);
 
-        renderData(cols, data);
+        if (!colsWrapper.ok || !dataWrapper.ok) {
+            view.innerHTML = renderError(colsWrapper.descripcion || dataWrapper.descripcion);
+            return;
+        }
+
+        state.currentColumns = colsWrapper.data || [];
+        const pageData = dataWrapper.data || { content: [], totalPages: 0, totalElements: 0 };
+        
+        state.totalPages = pageData.totalPages;
+        state.totalElements = pageData.totalElements;
+
+        renderData(state.currentColumns, pageData.content);
     } catch (e) {
         view.innerHTML = renderError(e.message);
+    }
+}
+
+async function changePage(newPage) {
+    if (newPage >= 0 && newPage < state.totalPages) {
+        await loadTableData(state.selectedTable, state.selectedSchema, newPage);
     }
 }
 
@@ -107,23 +146,29 @@ function renderTables() {
 
 function renderData(columns, data) {
     const view = document.getElementById('viewArea');
+    const startIdx = (state.currentPage * state.pageSize) + 1;
 
     let html = `
-        <div>
-            <button class="btn" onclick="loadTables('${state.selectedDb}')">← Volver</button>
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <button class="btn" onclick="loadTables('${state.selectedDb}')">← Volver a Tablas</button>
+            <div class="pagination-info">
+                Mostrando <b>${data.length}</b> de <b>${state.totalElements.toLocaleString()}</b> registros
+            </div>
         </div>
+
         <div class="data-container">
             <table>
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th style="width: 50px;">#</th>
                         ${columns.map(c => `<th>${escapeHTML(c.name)}</th>`).join('')}
                     </tr>
                 </thead>
                 <tbody>
+                    ${data.length === 0 ? '<tr><td colspan="100%" style="text-align:center; padding: 40px;">No hay datos en esta página</td></tr>' : ''}
                     ${data.map((row, i) => `
                         <tr>
-                            <td>${i + 1}</td>
+                            <td>${startIdx + i}</td>
                             ${columns.map(c => `
                                 <td onclick="navigator.clipboard.writeText('${row[c.name.toLowerCase()] ?? ''}')">
                                     ${escapeHTML(row[c.name.toLowerCase()] ?? '')}
@@ -134,9 +179,30 @@ function renderData(columns, data) {
                 </tbody>
             </table>
         </div>
+        ${renderPagination()}
     `;
 
     view.innerHTML = html;
+}
+
+function renderPagination() {
+    if (state.totalPages <= 1) return '';
+
+    return `
+        <div class="pagination">
+            <button class="pagination-btn" ${state.currentPage === 0 ? 'disabled' : ''} onclick="changePage(${state.currentPage - 1})">
+                ← Anterior
+            </button>
+            
+            <span class="pagination-info">
+                Página <b>${state.currentPage + 1}</b> de <b>${state.totalPages}</b>
+            </span>
+
+            <button class="pagination-btn" ${state.currentPage >= state.totalPages - 1 ? 'disabled' : ''} onclick="changePage(${state.currentPage + 1})">
+                Siguiente →
+            </button>
+        </div>
+    `;
 }
 
 /* ===== Actions ===== */

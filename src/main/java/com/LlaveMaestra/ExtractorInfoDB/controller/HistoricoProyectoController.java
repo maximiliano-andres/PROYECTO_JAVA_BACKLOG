@@ -5,6 +5,7 @@ import com.LlaveMaestra.ExtractorInfoDB.database.DynamicQueryExecutor;
 import com.LlaveMaestra.ExtractorInfoDB.service.HistoricoProyectoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.LlaveMaestra.ExtractorInfoDB.util.Wrapper;
 
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,9 @@ public class HistoricoProyectoController {
     }
 
     @GetMapping("/historico")
-    public List<HistoricoProyecto> getHistorico() {
-        return service.obtener("SELECT TOP (100) * FROM HistoricoProyecto_Honorarios");
+    public ResponseEntity<Wrapper<List<HistoricoProyecto>>> getHistorico() {
+            List<HistoricoProyecto> data = service.obtener("SELECT TOP (100) * FROM HistoricoProyecto_Honorarios");
+            return ResponseEntity.ok(Wrapper.success("Historico Proyecto retrieved successfully", data));       
+        
     }
 }

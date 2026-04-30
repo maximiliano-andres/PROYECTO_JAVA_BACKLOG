@@ -26,16 +26,6 @@ public class DynamicQueryExecutor {
 
     public List<Map<String, Object>> execute(String sql) {
 
-        // Muestra servidor, base de datos activa y SQL antes de ejecutar
-        jdbcTemplate.execute((java.sql.Connection conn) -> {
-            log.info("╔══════════════════════════════════════════════════════");
-            log.info("║ SERVIDOR : {}", conn.getMetaData().getURL());
-            log.info("║ BASE DE DATOS : {}", conn.getCatalog());
-            log.info("║ SQL      : {}", sql);
-            log.info("╚══════════════════════════════════════════════════════");
-            return null;
-        });
-
         return jdbcTemplate.query(sql, rs -> {
             List<Map<String, Object>> results = new ArrayList<>();
 
