@@ -34,3 +34,10 @@ db:
     honorarios: ${DB_DATABASE_DOS:Rem_Honorarios}
     mun-pae: ${DB_DATABASE_TRES:Rem_MunPae}
     renta-rrhh: ${DB_DATABASE_CUATRO:Renta_RRHH}
+
+app:
+  excluded-databases:
+    - master
+    - model
+    - msdb
+    - tempdb

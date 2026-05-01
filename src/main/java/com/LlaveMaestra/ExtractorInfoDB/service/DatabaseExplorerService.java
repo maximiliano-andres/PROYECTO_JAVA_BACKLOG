@@ -4,8 +4,11 @@ import com.LlaveMaestra.ExtractorInfoDB.dto.ColumnInfo;
 import com.LlaveMaestra.ExtractorInfoDB.dto.DatabaseInfo;
 import com.LlaveMaestra.ExtractorInfoDB.dto.TableInfo;
 import com.LlaveMaestra.ExtractorInfoDB.dto.PageData;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import com.LlaveMaestra.ExtractorInfoDB.config.AppProperties;
 import org.springframework.stereotype.Service;
 
 import java.sql.Connection;
@@ -18,13 +21,12 @@ import java.util.Map;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class DatabaseExplorerService {
 
     private final JdbcTemplate jdbcTemplate;
+    private final AppProperties appProperties;
 
-    public DatabaseExplorerService(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     /**
      * Obtiene la lista de bases de datos (catálogos) disponibles en el servidor.
@@ -35,7 +37,11 @@ public class DatabaseExplorerService {
             DatabaseMetaData metaData = conn.getMetaData();
             try (ResultSet rs = metaData.getCatalogs()) {
                 while (rs.next()) {
-                    databases.add(new DatabaseInfo(rs.getString("TABLE_CAT")));
+                    String dbName = rs.getString("TABLE_CAT");
+
+                    if (!appProperties.getExcludedDatabases().contains(dbName)) {
+                        databases.add(new DatabaseInfo(dbName));
+                    }
                 }
             }
         }
