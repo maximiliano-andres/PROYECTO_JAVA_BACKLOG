@@ -4,7 +4,8 @@ import com.LlaveMaestra.ExtractorInfoDB.dto.ColumnInfo;
 import com.LlaveMaestra.ExtractorInfoDB.dto.DatabaseInfo;
 import com.LlaveMaestra.ExtractorInfoDB.dto.TableInfo;
 import com.LlaveMaestra.ExtractorInfoDB.dto.PageData;
-import com.LlaveMaestra.ExtractorInfoDB.service.DatabaseExplorerService;
+import com.LlaveMaestra.ExtractorInfoDB.service.metadata.MetadataService;
+import com.LlaveMaestra.ExtractorInfoDB.service.query.QueryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.LlaveMaestra.ExtractorInfoDB.util.Wrapper;
@@ -13,24 +14,23 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/v1/explorer")
 @Slf4j
+@RequiredArgsConstructor
 public class DatabaseExplorerController {
 
-    private final DatabaseExplorerService explorerService;
-
-    public DatabaseExplorerController(DatabaseExplorerService explorerService) {
-        this.explorerService = explorerService;
-    }
+    private final MetadataService metadataService;
+    private final QueryService queryService;
 
     @GetMapping("/databases")
     public ResponseEntity<Wrapper<List<DatabaseInfo>>> listDatabases() throws SQLException {
 
-        List<DatabaseInfo> dbs = explorerService.getDatabases();
+        List<DatabaseInfo> dbs = metadataService.getDatabases();
 
         log.info("Databases found ({} en Total): {}", dbs.size(), dbs.stream().map(DatabaseInfo::getName).toList());
 
@@ -39,9 +39,10 @@ public class DatabaseExplorerController {
 
     @GetMapping("/tables")
     public ResponseEntity<Wrapper<List<TableInfo>>> listTables(
-            @RequestParam(required = false) String database) throws SQLException {
+            @RequestParam(required = false) String database,
+            @RequestParam(required = false) String schema) throws SQLException {
 
-        List<TableInfo> tablesDb = explorerService.getTables(database);
+        List<TableInfo> tablesDb = metadataService.getTables(database, schema);
 
         log.info("TABLAS ENCONTRADAS TOTALES {}", tablesDb.size());
 
@@ -54,7 +55,7 @@ public class DatabaseExplorerController {
             @RequestParam(required = false) String schema,
             @RequestParam String table) throws SQLException {
 
-        List<ColumnInfo> columns = explorerService.getColumns(database, schema, table);
+        List<ColumnInfo> columns = metadataService.getColumns(database, schema, table);
 
         log.info("COLUMNAS TOTALES EN: DB {}, SCHEMA {}, TABLA {}, total columnas: {}", database, schema, table,
                 columns.size());
@@ -70,7 +71,7 @@ public class DatabaseExplorerController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "500") int size) throws SQLException {
         
-        PageData<Map<String, Object>> pagedData = explorerService.getTableData(database, schema, table, page, size);
+        PageData<Map<String, Object>> pagedData = queryService.getTableData(database, schema, table, page, size);
 
         log.info("DATOS PAGINADOS EN: DB {}, SCHEMA {}, TABLA {}, página {}, total elementos: {}", 
                 database, schema, table, page, pagedData.getTotalElements());

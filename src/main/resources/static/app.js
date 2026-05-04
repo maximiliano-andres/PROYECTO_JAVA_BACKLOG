@@ -159,7 +159,7 @@ function renderData(columns, data) {
         <div class="data-container">
             <table>
                 <thead>
-                    <tr>
+                    <tr> 
                         <th style="width: 50px;">#</th>
                         ${columns.map(c => `<th>${escapeHTML(c.name)}</th>`).join('')}
                     </tr>
