@@ -43,14 +43,14 @@ public class ExportService {
         log.info("Iniciando exportación [{}] con SQL: {}", request.getFormat(), queryBuilder.sql);
 
         // 4. Ejecutar con Streaming
-        // Usamos JDBC puro para asegurar que el ResultSet no cargue todo en memoria (FetchSize)
+        long startTime = System.currentTimeMillis();
+        int rowCount = 0;
+
         try (Connection conn = jdbcTemplate.getDataSource().getConnection();
              PreparedStatement ps = conn.prepareStatement(queryBuilder.sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
             
-            // Configurar el fetch size para streaming (específico de cada driver, 1000 es balanceado)
             ps.setFetchSize(1000);
             
-            // Setear parámetros si existen (filtros)
             for (int i = 0; i < queryBuilder.params.size(); i++) {
                 ps.setObject(i + 1, queryBuilder.params.get(i));
             }
@@ -64,7 +64,9 @@ public class ExportService {
                         columns.add(rs.getMetaData().getColumnLabel(i));
                     }
                 }
-                strategy.write(rs, columns, outputStream);
+                
+                log.info("Query ejecutada en {}ms. Iniciando escritura de datos...", (System.currentTimeMillis() - startTime));
+                strategy.write(rs, columns, outputStream, request.getJobId());
             }
         }
     }
@@ -86,7 +88,7 @@ public class ExportService {
             sql.append("*");
         } else {
             sql.append(request.getColumns().stream()
-                .map(c -> "[" + c + "]") // Simple quoting, SecurityValidator podría mejorarse para esto
+                .map(c -> "[" + c + "]")
                 .collect(Collectors.joining(", ")));
         }
 
@@ -94,13 +96,12 @@ public class ExportService {
 
         List<Object> params = new ArrayList<>();
         
-        // Filtros (Simplificado para el ejemplo)
+        // Filtros
         if (request.getFilters() != null && !request.getFilters().isEmpty()) {
             sql.append(" WHERE ");
             List<String> filterSql = new ArrayList<>();
             for (ExportRequest.FilterRule filter : request.getFilters()) {
-                // Validación básica de columna para evitar inyección en el nombre de columna
-                if (filter.getColumn().matches("^[a-zA-Z0-9_]+$")) {
+                if (filter.getColumn() != null && filter.getColumn().matches("^[a-zA-Z0-9_]+$")) {
                     filterSql.add("[" + filter.getColumn() + "] " + filter.getOperator() + " ?");
                     params.add(filter.getValue());
                 }
@@ -108,29 +109,39 @@ public class ExportService {
             sql.append(String.join(" AND ", filterSql));
         }
 
-        // Alcance (Scope) - Optimizado para SQL Server
+        // Alcance (Scope) con validación de nulos
+        if (request.getScope() == null) {
+            return new SqlQueryBuilder(sql.toString(), params);
+        }
+
         switch (request.getScope()) {
             case PAGE:
-                int offset = request.getPage() * request.getPageSize();
-                sql.append(" ORDER BY (SELECT NULL) OFFSET ").append(offset).append(" ROWS FETCH NEXT ").append(request.getPageSize()).append(" ROWS ONLY");
+                int p = request.getPage() != null ? request.getPage() : 0;
+                int ps = request.getPageSize() != null ? request.getPageSize() : 100;
+                int offset = p * ps;
+                sql.append(" ORDER BY (SELECT NULL) OFFSET ").append(offset).append(" ROWS FETCH NEXT ").append(ps).append(" ROWS ONLY");
                 break;
             case PAGES:
-                int fromOffset = (request.getPageFrom() - 1) * 100; // Asumiendo 100 por página si no se especifica
-                int totalRows = (request.getPageTo() - request.getPageFrom() + 1) * 100;
-                sql.append(" ORDER BY (SELECT NULL) OFFSET ").append(fromOffset).append(" ROWS FETCH NEXT ").append(totalRows).append(" ROWS ONLY");
+                int from = request.getPageFrom() != null ? request.getPageFrom() : 1;
+                int to = request.getPageTo() != null ? request.getPageTo() : from;
+                int size = 100; // Default
+                int off = (from - 1) * size;
+                int total = (to - from + 1) * size;
+                sql.append(" ORDER BY (SELECT NULL) OFFSET ").append(off).append(" ROWS FETCH NEXT ").append(total).append(" ROWS ONLY");
                 break;
             case ROWS:
-                // SQL Server TOP es más rápido si no hay orden
-                sql.insert(7, "TOP (" + request.getRowCount() + ") "); 
+                int count = request.getRowCount() != null ? request.getRowCount() : 100;
+                sql.insert(7, "TOP (" + count + ") "); 
                 break;
             case RANGE:
-                int start = request.getRowFrom() - 1;
-                int count = request.getRowTo() - request.getRowFrom() + 1;
-                sql.append(" ORDER BY (SELECT NULL) OFFSET ").append(start).append(" ROWS FETCH NEXT ").append(count).append(" ROWS ONLY");
+                int rFrom = request.getRowFrom() != null ? request.getRowFrom() : 1;
+                int rTo = request.getRowTo() != null ? request.getRowTo() : rFrom;
+                int rStart = Math.max(0, rFrom - 1);
+                int rCount = Math.max(0, rTo - rFrom + 1);
+                sql.append(" ORDER BY (SELECT NULL) OFFSET ").append(rStart).append(" ROWS FETCH NEXT ").append(rCount).append(" ROWS ONLY");
                 break;
             case ALL:
             default:
-                // No limit
                 break;
         }
 

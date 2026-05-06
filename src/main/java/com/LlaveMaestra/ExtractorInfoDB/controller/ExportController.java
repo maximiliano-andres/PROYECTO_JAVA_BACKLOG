@@ -3,16 +3,15 @@ package com.LlaveMaestra.ExtractorInfoDB.controller;
 import com.LlaveMaestra.ExtractorInfoDB.dto.ExportEnums;
 import com.LlaveMaestra.ExtractorInfoDB.dto.ExportRequest;
 import com.LlaveMaestra.ExtractorInfoDB.service.export.ExportService;
+import com.LlaveMaestra.ExtractorInfoDB.service.export.ExportProgressService;
 import com.LlaveMaestra.ExtractorInfoDB.service.export.ExportStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.Map;
@@ -24,7 +23,13 @@ import java.util.Map;
 public class ExportController {
 
     private final ExportService exportService;
+    private final ExportProgressService progressService;
     private final Map<String, ExportStrategy> strategies;
+
+    @GetMapping("/progress/{jobId}")
+    public SseEmitter streamProgress(@PathVariable String jobId) {
+        return progressService.createEmitter(jobId);
+    }
 
     @PostMapping
     public ResponseEntity<StreamingResponseBody> exportData(@RequestBody ExportRequest request) {
@@ -48,8 +53,13 @@ public class ExportController {
             StreamingResponseBody responseBody = outputStream -> {
                 try {
                     exportService.executeExport(request, outputStream);
+                    log.info("Exportación completada exitosamente para tabla: {}", request.getTable());
                 } catch (Exception e) {
-                    log.error("Error durante el streaming de exportación", e);
+                    log.error("CRITICAL: Fallo durante el streaming de exportación para la tabla: {}", request.getTable(), e);
+                    // No podemos cambiar el status code aquí porque ya se enviaron los headers,
+                    // pero al menos registramos el error completo.
+                } finally {
+                    outputStream.flush();
                 }
             };
 

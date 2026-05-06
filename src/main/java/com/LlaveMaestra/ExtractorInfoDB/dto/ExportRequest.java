@@ -8,6 +8,7 @@ public class ExportRequest {
     private String database;
     private String schema;
     private String table;
+    private String jobId;
 
     private ExportEnums.ExportFormat format;
     private ExportEnums.ExportScope scope;

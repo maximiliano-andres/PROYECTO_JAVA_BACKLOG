@@ -5,17 +5,33 @@ import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Component;
 
+import com.LlaveMaestra.ExtractorInfoDB.service.storage.StorageService;
+import lombok.RequiredArgsConstructor;
 import java.io.OutputStream;
 import java.sql.ResultSet;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class XlsxExportStrategy implements ExportStrategy {
 
+    private final StorageService storageService;
+    private final ExportProgressService progressService;
+
     @Override
-    public void write(ResultSet rs, List<String> columns, OutputStream os) throws Exception {
+    public void write(ResultSet rs, List<String> columns, OutputStream os, String jobId) throws Exception {
+        // Obtener el mejor directorio basado en espacio en disco
+        java.nio.file.Path tempPath = storageService.getBestTempDirectory();
+        java.io.File tempDir = tempPath.toFile();
+        
+        org.apache.poi.util.TempFile.setTempFileCreationStrategy(
+            new org.apache.poi.util.DefaultTempFileCreationStrategy(tempDir));
+
         // SXSSFWorkbook guarda registros en disco (temp) para mantener bajo uso de RAM
         try (SXSSFWorkbook workbook = new SXSSFWorkbook(100)) {
+            // Optimización: Comprimir archivos temporales para ahorrar espacio en disco
+            workbook.setCompressTempFiles(true);
+            
             SXSSFSheet sheet = workbook.createSheet("Datos");
             
             // Estilo Header
@@ -51,10 +67,26 @@ public class XlsxExportStrategy implements ExportStrategy {
                         }
                     }
                 }
+                
+                // Logging de progreso cada 10.000 filas
+                if (rowNum % 10000 == 0) {
+                    String msg = "Excel Progress: " + rowNum + " rows written...";
+                    System.out.println(msg);
+                    progressService.publishProgress(jobId, msg);
+                }
             }
+            
+            String msgFin = "Escritura de datos Excel finalizada. Generando archivo...";
+            System.out.println(msgFin);
+            progressService.publishProgress(jobId, msgFin);
             
             workbook.write(os);
             workbook.dispose(); // Elimina archivos temporales de disco
+            
+            String msgOk = "Archivo Excel generado exitosamente.";
+            System.out.println(msgOk);
+            progressService.publishProgress(jobId, msgOk);
+            progressService.completeProgress(jobId);
         }
     }
 

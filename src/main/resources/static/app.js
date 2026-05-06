@@ -641,9 +641,72 @@ function getSelectedFormat() {
   );
 }
 
+/* ===== EXPORT PROGRESS ===== */
+
+let currentEventSource = null;
+
+function showProgress(jobId) {
+    const container = document.getElementById('exportProgress');
+    const messages = document.getElementById('progressMessages');
+    
+    container.classList.remove('hidden');
+    messages.innerHTML = '<div class="progress-message">Iniciando conexión con el servidor...</div>';
+    
+    if (currentEventSource) {
+        currentEventSource.close();
+    }
+    
+    currentEventSource = new EventSource(`/api/export/progress/${jobId}`);
+    
+    currentEventSource.addEventListener('progress', (e) => {
+        const msg = document.createElement('div');
+        msg.className = 'progress-message';
+        msg.textContent = e.data;
+        messages.appendChild(msg);
+        messages.scrollTop = messages.scrollHeight;
+    });
+    
+    currentEventSource.addEventListener('complete', (e) => {
+        const msg = document.createElement('div');
+        msg.className = 'progress-message complete';
+        msg.textContent = '¡Proceso finalizado con éxito!';
+        messages.appendChild(msg);
+        messages.scrollTop = messages.scrollHeight;
+        
+        // Deshabilitar spinner del header
+        const icon = document.querySelector('.export-progress-icon');
+        if (icon) icon.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-5" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        
+        setTimeout(() => {
+            closeProgress();
+        }, 5000); // Auto-cerrar después de 5s
+        
+        currentEventSource.close();
+        currentEventSource = null;
+    });
+    
+    currentEventSource.onerror = () => {
+        console.warn('SSE connection closed or error occurred.');
+        if (currentEventSource) {
+            currentEventSource.close();
+            currentEventSource = null;
+        }
+    };
+}
+
+function closeProgress() {
+    const container = document.getElementById('exportProgress');
+    container.classList.add('hidden');
+    if (currentEventSource) {
+        currentEventSource.close();
+        currentEventSource = null;
+    }
+}
+
 async function submitExport() {
   const scopeData = getExportScope();
   const format = getSelectedFormat().toUpperCase();
+  const jobId = crypto.randomUUID();
   
   const payload = {
     database: state.selectedDb,
@@ -659,7 +722,8 @@ async function submitExport() {
     pageTo: (scopeData.pageTo !== undefined) ? scopeData.pageTo + 1 : undefined,
     rowCount: scopeData.limit,
     rowFrom: scopeData.rowFrom,
-    rowTo: scopeData.rowTo
+    rowTo: scopeData.rowTo,
+    jobId: jobId
   };
 
   const btn = document.querySelector('.modal-footer .btn-primary');
@@ -668,6 +732,9 @@ async function submitExport() {
   try {
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner-sm"></div> Generando...';
+
+    // Mostrar ventana de progreso
+    showProgress(jobId);
 
     const response = await fetch('/api/export', {
       method: 'POST',
@@ -703,6 +770,7 @@ async function submitExport() {
   } catch (e) {
     console.error(e);
     alert('Error al exportar: ' + e.message);
+    closeProgress();
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalHtml;

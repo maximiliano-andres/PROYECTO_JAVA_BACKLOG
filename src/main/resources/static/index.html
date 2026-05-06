@@ -335,8 +335,22 @@
         </div>
 
     </div>
-</div>
+  </div>
 
-<script src="app.js"></script>
+  <!-- Export Progress Notification -->
+  <div id="exportProgress" class="export-progress-floating hidden">
+    <div class="export-progress-header">
+      <div class="export-progress-icon">
+        <div class="spinner-sm"></div>
+      </div>
+      <div class="export-progress-title">Generando Exportación</div>
+      <button class="btn-close-minimal" onclick="closeProgress()">&times;</button>
+    </div>
+    <div class="export-progress-body" id="progressMessages">
+      <div class="progress-message">Iniciando proceso...</div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>

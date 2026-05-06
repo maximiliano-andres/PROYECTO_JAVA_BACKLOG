@@ -18,7 +18,7 @@ spring:
       connection-timeout: 30000 # tiempo maximo de espera para obtener una conexion
       idle-timeout: 600000 # tiempo maximo de inactividad de una conexion
       max-lifetime: 1800000 # tiempo maximo de vida de una conexion
-      leak-detection-threshold: 5000 # tiempo maximo de espera para obtener una conexion
+      leak-detection-threshold: 60000 # umbral para detectar fugas (subido a 60s para soportar exportaciones largas)
 
 server:
   port: 2025
