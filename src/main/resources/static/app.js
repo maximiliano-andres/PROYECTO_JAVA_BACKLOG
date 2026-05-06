@@ -641,18 +641,70 @@ function getSelectedFormat() {
   );
 }
 
-function submitExport() {
+async function submitExport() {
+  const scopeData = getExportScope();
+  const format = getSelectedFormat().toUpperCase();
+  
   const payload = {
     database: state.selectedDb,
     schema: state.selectedSchema,
     table: state.selectedTable,
-    format: getSelectedFormat(),
-    scope: getExportScope(),
+    format: format,
+    scope: scopeData.mode.toUpperCase(),
     columns: getSelectedColumns(),
     filters: getFilters(),
+    page: scopeData.page,
+    pageSize: scopeData.size,
+    pageFrom: (scopeData.pageFrom !== undefined) ? scopeData.pageFrom + 1 : undefined,
+    pageTo: (scopeData.pageTo !== undefined) ? scopeData.pageTo + 1 : undefined,
+    rowCount: scopeData.limit,
+    rowFrom: scopeData.rowFrom,
+    rowTo: scopeData.rowTo
   };
 
-  console.log("Export payload:", payload);
-  // TODO: call /api/v1/explorer/export with payload
-  closeExportModal();
+  const btn = document.querySelector('.modal-footer .btn-primary');
+  const originalHtml = btn.innerHTML;
+  
+  try {
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner-sm"></div> Generando...';
+
+    const response = await fetch('/api/export', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) throw new Error('Error en la exportación');
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    
+    // Extraer nombre de archivo del header
+    const disposition = response.headers.get('Content-Disposition');
+    let fileName = `export_${state.selectedTable}.${format.toLowerCase()}`;
+    if (disposition && disposition.indexOf('attachment') !== -1) {
+        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+        const matches = filenameRegex.exec(disposition);
+        if (matches != null && matches[1]) { 
+          fileName = matches[1].replace(/['"]/g, '');
+        }
+    }
+
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
+    
+    closeExportModal();
+  } catch (e) {
+    console.error(e);
+    alert('Error al exportar: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+  }
 }

@@ -7,7 +7,7 @@ spring:
       enabled: ALWAYS
 
   datasource:
-    url: jdbc:sqlserver://${DB_SERVER:MAXIMILIANO\SQLEXPRESS};databaseName=${DB_DATABASE_DOS:Rem_Honorarios};encrypt=true;trustServerCertificate=true
+    url: jdbc:sqlserver://${DB_SERVER:host.docker.internal};databaseName=${DB_DATABASE_DOS:Rem_Honorarios};encrypt=true;trustServerCertificate=true
     username: ${DB_USERNAME:Maximiliano_Andres}
     password: ${DB_PASSWORD:Maximiliano_Andres}
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
@@ -23,10 +23,19 @@ spring:
 server:
   port: 2025
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
 # Configuración de base de datos profesional
 # Estos valores pueden ser sobrescritos por variables de entorno (ej: DB_PASSWORD)
 db:
-  server: ${DB_SERVER:MAXIMILIANO\SQLEXPRESS}
+  server: ${DB_SERVER:host.docker.internal}
   username: ${DB_USERNAME:Maximiliano_Andres}
   password: ${DB_PASSWORD:Maximiliano_Andres}
   databases:
