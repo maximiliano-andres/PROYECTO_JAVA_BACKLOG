@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Manual de Ayuda - Conexión DB</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Inter',sans-serif;
+    background:
+        radial-gradient(circle at top left,#0d2459 0%,#081326 45%,#050b18 100%);
+    color:#fff;
+    min-height:100vh;
+}
+
+.container{
+    display:flex;
+    gap:25px;
+    padding:25px;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    width:290px;
+    background:rgba(17,26,48,.78);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:24px;
+    padding:25px;
+    backdrop-filter:blur(15px);
+    height:calc(100vh - 50px);
+    position:sticky;
+    top:25px;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    margin-bottom:35px;
+}
+
+.logo-icon{
+    width:55px;
+    height:55px;
+    border-radius:18px;
+    background:linear-gradient(135deg,#2463ff,#153cb7);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:25px;
+}
+
+.logo h2{
+    font-size:24px;
+}
+
+.logo p{
+    color:#9ca8c7;
+    font-size:14px;
+}
+
+.menu{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.menu a{
+    text-decoration:none;
+    color:#cbd5e1;
+    padding:14px 16px;
+    border-radius:14px;
+    transition:.3s;
+    font-size:15px;
+}
+
+.menu a:hover{
+    background:#1d4ed8;
+    color:#fff;
+}
+
+.support-box{
+    margin-top:40px;
+    padding:20px;
+    border-radius:18px;
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.06);
+}
+
+.support-box h3{
+    margin-bottom:10px;
+}
+
+.support-box p{
+    color:#9ca8c7;
+    line-height:1.6;
+    font-size:14px;
+}
+
+.support-btn{
+    margin-top:18px;
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    background:#2563eb;
+    color:#fff;
+    font-weight:600;
+    cursor:pointer;
+}
+
+/* CONTENT */
+
+.content{
+    flex:1;
+}
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.download-btn{
+    background:#2563eb;
+    border:none;
+    color:#fff;
+    padding:14px 22px;
+    border-radius:14px;
+    cursor:pointer;
+    font-weight:600;
+    text-decoration:none;
+    display:inline-block;
+    transition: background 0.2s;
+}
+
+.download-btn:hover {
+    background:#1d4ed8;
+}
+
+.card{
+    background:rgba(17,26,48,.75);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:24px;
+    padding:30px;
+    margin-bottom:25px;
+    backdrop-filter:blur(12px);
+}
+
+.card h1,
+.card h2{
+    margin-bottom:18px;
+}
+
+.card p{
+    color:#c3cde2;
+    line-height:1.8;
+}
+
+/* GRID */
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:20px;
+    margin-top:25px;
+}
+
+.small-card{
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.05);
+    border-radius:20px;
+    padding:25px;
+}
+
+.small-card h3{
+    margin-bottom:15px;
+}
+
+.small-card p{
+    font-size:14px;
+}
+
+.download-link{
+    margin-top:20px;
+    display:inline-block;
+    background:#2563eb;
+    color:white;
+    text-decoration:none;
+    padding:12px 18px;
+    border-radius:12px;
+    font-size:14px;
+}
+
+/* CODE */
+
+.code{
+    background:#050b18;
+    border:1px solid rgba(255,255,255,.06);
+    padding:20px;
+    border-radius:16px;
+    overflow:auto;
+    margin-top:20px;
+    color:#7dd3fc;
+    line-height:1.8;
+}
+
+/* TABLE */
+
+.table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+.table th{
+    background:#1e3a8a;
+    padding:16px;
+    text-align:left;
+}
+
+.table td{
+    padding:16px;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    color:#cbd5e1;
+}
+
+/* ALERT */
+
+.alert{
+    padding:18px;
+    border-radius:16px;
+    margin-top:20px;
+    font-weight:500;
+}
+
+.alert.info{
+    background:rgba(37,99,235,.15);
+    border:1px solid rgba(37,99,235,.4);
+}
+
+.alert.warning{
+    background:rgba(255,166,0,.12);
+    border:1px solid rgba(255,166,0,.4);
+}
+
+.footer{
+    text-align:center;
+    padding:20px;
+    color:#8ca0c8;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            <div class="logo-icon">🛢️</div>
+
+            <div>
+                <h2>EDB</h2>
+                <p>Guia de Uso</p>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <a href="#intro">Introducción</a>
+            <a href="#campos">Campos de Conexión</a>
+            <a href="#sqlserver">SQL Server</a>
+            <a href="#mysql">MySQL</a>
+            <a href="#postgres">PostgreSQL</a>
+            <a href="#oracle">Oracle</a>
+            <a href="#errores">Mensajes y Alertas</a>
+            <a href="#faq">Preguntas Frecuentes</a>
+        </nav>
+
+        <div class="support-box">
+            <h3>¿Necesitas ayuda?</h3>
+
+            <p>
+                Si tienes problemas para conectarte o configurar
+                una base de datos, contacta al administrador.
+            </p>
+
+            <button class="support-btn">
+                Contactar Soporte
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- CONTENT -->
+
+    <main class="content">
+
+        <div class="header">
+
+            <div>
+                <h1>Conexión a Base de Datos</h1>
+                <p>Guia de Uso EDB para SQL Server, MySQL, PostgreSQL, Oracle</p>
+            </div>
+
+            <a href="/" class="download-btn">
+                <- Volver
+            </a>
+
+        </div>
+
+        <!-- INTRO -->
+
+        <section class="card" id="intro">
+
+            <h1>Introducción</h1>
+
+            <p>
+                Este sistema permite conectarse dinámicamente
+                a múltiples motores de base de datos.
+                El objetivo es permitir conexiones de forma rapida y sencilla, para descargar reportes completos y precisos de cualquier tabla de la base de datos.
+                ademas de poder ver la estructura de la base de datos con sus tablas y columnas, por lo que se convierte en una herramienta muy util para el administrador de la base de datos y para el usuario que necesite obtener informacion de la base de datos.
+                Esta se puede descargar en formato Excel y CSV (Json Proximamente).
+            </p>
+
+            <div class="alert info">
+                Recomendación: Crear un usuario previamente en la base de datos, con permisos limitados a solo lectura de las tablas que se vayan a utilizar.
+            </div>
+
+        </section>
+
+        <!-- CAMPOS -->
+
+        <section class="card" id="campos">
+
+            <h2>Cómo completar los campos de nuestra conexión a la aplicacion</h2>
+
+            <table class="table">
+
+                <thead>
+                    <tr>
+                        <th>Campo</th>
+                        <th>Descripción</th>
+                        <th>Ejemplo</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td>Motor de Base de Datos</td>
+                        <td>hace referencia al motor de base de datos al que se desea conectar</td>
+                        <td> <ul> <li>SQL Server</li> <li> MySQL</li> <li> PostgreSQL</li> <li> Oracle</li> </ul> </td>
+                    </tr>
+
+                    <tr>
+                        <td>Host / Servidor</td>
+                        <td>Dirección IP o nombre del servidor</td>
+                        <td> <ul> <li>localhost</li> <li> [IP_ADDRESS]</li> </ul> </td>
+                    </tr>
+
+                    <tr>
+                        <td>Puerto</td>
+                        <td>Puerto de comunicación utilizado por el motor de base de datos.
+                            Generalmente corresponde al puerto configurado por defecto o personalizado del servidor.
+                    </td>
+                        <td><ul>
+                                <li>SQL Server: 1433</li>
+                                <li>MySQL: 3306</li>
+                                <li>PostgreSQL: 5432</li>
+                            <li>Oracle: 1521</li>
+                        </ul></td>
+                    </tr>
+
+                    <tr>
+                        <td>Base de Datos</td>
+                        <td>Nombre exacto de la Base de Datos</td>
+                        <td> <ul> <li>Rem_Municipal</li> </ul> </td>
+                    </tr>
+
+                    <tr>
+                        <td>Usuario</td>
+                        <td>Usuario autorizado para la extracción de datos. Debe tener permisos de lectura en la base de datos.
+                            Recomendación: Crear un usuario previamente en la base de datos, con permisos limitados a solo lectura de las tablas que se vayan a utilizar.
+                        </td>
+                        <td> <ul> <li>Maximiliano_Andres</li> </ul> </td>
+                    </tr>
+
+                    <tr>
+                        <td>Contraseña</td>
+                        <td>Contraseña del usuario</td>
+                        <td> <ul> <li>Contraeña definida en la creacion del usuario</li> </ul> </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+        <!-- DOWNLOADS -->
+
+        <section class="card">
+
+    <h2>Descargas Oficiales</h2>
+
+    <div class="grid">
+
+        <!-- SQL SERVER -->
+
+        <div class="small-card">
+            <h3>SQL Server</h3>
+
+            <p>
+                Descargue Microsoft SQL Server Express.
+            </p>
+
+            <a class="download-link"
+               href="https://www.microsoft.com/en-us/sql-server/sql-server-downloads"
+               target="_blank">
+               Descargar
+            </a>
+        </div>
+
+        <!-- MYSQL -->
+
+        <div class="small-card">
+            <h3>MySQL</h3>
+
+            <p>
+                Descargue MySQL Community Server oficial.
+            </p>
+
+            <a class="download-link"
+               href="https://dev.mysql.com/downloads/mysql/"
+               target="_blank">
+               Descargar
+            </a>
+        </div>
+
+        <!-- POSTGRESQL -->
+
+        <div class="small-card">
+            <h3>PostgreSQL</h3>
+
+            <p>
+                Descargue PostgreSQL oficial.
+            </p>
+
+            <a class="download-link"
+               href="https://www.postgresql.org/download/"
+               target="_blank">
+               Descargar
+            </a>
+        </div>
+
+        <!-- ORACLE -->
+
+        <div class="small-card">
+            <h3>Oracle</h3>
+
+            <p>
+                Descargue Oracle Database Express Edition (XE).
+            </p>
+
+            <a class="download-link"
+               href="https://www.oracle.com/database/technologies/xe-downloads.html"
+               target="_blank">
+               Descargar
+            </a>
+        </div>
+
+    </div>
+
+</section>
+
+        <!-- SQL SERVER -->
+
+<section class="card" id="sqlserver">
+
+    <h2>SQL Server</h2>
+
+    <p>
+        SQL Server utiliza bases de datos, logins y usuarios separados.
+        Primero se crea el login del servidor y luego el usuario dentro de la base de datos.
+    </p>
+
+    <div class="alert info">
+        Herramienta gráfica recomendada:
+        SQL Server Management Studio (SSMS)
+    </div>
+
+    <h3 style="margin-top:25px;">Creación mediante interfaz gráfica (SSMS)</h3>
+
+    <div class="code">
+<li>1. Abrir SQL Server Management Studio</li>
+
+<li>2. Click derecho en "Databases"</li>
+   <li>→ New Database</li>
+
+<li>3. Nombre:</li>
+   <li>→ EmpresaDB</li>
+
+<li>4. Security</li>
+   <li>→ Logins</li>
+   <li>→ New Login</li>
+
+<li>5. Crear usuario:</li>
+   <li>→ empresa_user</li>
+
+<li>6. Asignar contraseña</li>
+
+<li>7. En "User Mapping"</li>
+   <li>→ seleccionar EmpresaDB</li>
+
+<li>8. Activar:</li>
+   <li>→ db_datareader</li>
+   <li>→ db_datawriter</li>
+   <li>→ db_owner</li>
+    </div>
+
+    <h3 style="margin-top:25px;">Creación mediante SQL</h3>
+
+    <div class="code">
+CREATE DATABASE EmpresaDB;
+GO
+
+CREATE LOGIN empresa_user
+WITH PASSWORD = '123456';
+GO
+
+USE EmpresaDB;
+GO
+
+CREATE USER empresa_user
+FOR LOGIN empresa_user;
+GO
+
+ALTER ROLE db_owner
+ADD MEMBER empresa_user;
+GO
+    </div>
+
+</section>
+
+<!-- MYSQL -->
+
+<section class="card" id="mysql">
+
+    <h2>MySQL</h2>
+
+    <p>
+        MySQL trabaja principalmente con bases de datos y usuarios asociados al host.
+    </p>
+
+    <div class="alert info">
+        Herramienta gráfica recomendada:
+        MySQL Workbench
+    </div>
+
+    <h3 style="margin-top:25px;">Creación mediante interfaz gráfica</h3>
+
+    <div class="code">
+<li>1. Abrir MySQL Workbench</li>
+
+<li>2. Schemas</li>
+   <li>→ Create Schema</li>
+
+<li>3. Nombre:</li>
+   <li>→ EmpresaDB</li>
+
+<li>4. Administration</li>
+   <li>→ Users and Privileges</li>
+
+<li>5. Add Account</li>
+
+<li>6. Usuario:</li>
+   <li>→ empresa_user</li>
+
+<li>7. Asignar contraseña</li>
+
+<li>8. En "Schema Privileges"</li>
+   <li>→ agregar permisos sobre EmpresaDB</li>
+    </div>
+
+    <h3 style="margin-top:25px;">Creación mediante SQL</h3>
+
+    <div class="code">
+CREATE DATABASE EmpresaDB;
+
+CREATE USER 'empresa_user'@'localhost'
+IDENTIFIED BY '123456';
+
+GRANT ALL PRIVILEGES
+ON EmpresaDB.*
+TO 'empresa_user'@'localhost';
+
+FLUSH PRIVILEGES;
+    </div>
+
+</section>
+
+<!-- POSTGRESQL -->
+
+<section class="card" id="postgres">
+
+    <h2>PostgreSQL</h2>
+
+    <p>
+        PostgreSQL utiliza roles para manejar usuarios y permisos.
+    </p>
+
+    <div class="alert info">
+        Herramienta gráfica recomendada:
+        pgAdmin 4
+    </div>
+
+    <h3 style="margin-top:25px;">Creación mediante interfaz gráfica</h3>
+
+    <div class="code">
+<li>1. Abrir pgAdmin</li>
+
+<li>2. Databases</li>
+   <li>→ Create</li>
+   <li>→ Database</li>
+
+<li>3. Nombre:</li>
+   <li>→ empresadb</li>
+
+<li>4. Login/Group Roles</li>
+   <li>→ Create</li>
+   <li>→ Login Role</li>
+
+<li>5. Usuario:</li>
+   <li>→ empresa_user</li>
+
+<li>6. Asignar contraseña</li>
+
+<li>7. En Privileges:</li>
+   <li>→ activar permisos necesarios</li>
+    </div>
+
+    <h3 style="margin-top:25px;">Creación mediante SQL</h3>
+
+    <div class="code">
+CREATE DATABASE empresadb;
+
+CREATE USER empresa_user
+WITH PASSWORD '123456';
+
+GRANT ALL PRIVILEGES
+ON DATABASE empresadb
+TO empresa_user;
+    </div>
+
+</section>
+
+<!-- ORACLE -->
+
+<section class="card" id="oracle">
+
+    <h2>Oracle</h2>
+
+    <p>
+        Oracle trabaja principalmente con usuarios y esquemas.
+        El esquema normalmente tiene el mismo nombre del usuario.
+    </p>
+
+    <div class="alert warning">
+        Oracle maneja usuarios y esquemas de forma distinta
+        a MySQL o SQL Server.
+    </div>
+
+    <div class="alert info">
+        Herramienta gráfica recomendada:
+        Oracle SQL Developer
+    </div>
+
+    <h3 style="margin-top:25px;">Creación mediante interfaz gráfica</h3>
+
+    <div class="code">
+<li>1. Abrir Oracle SQL Developer</li>
+
+<li>2. Conectarse como SYSTEM</li>
+
+<li>3. Security</li>
+   <li>→ Users</li>
+   <li>→ Create User</li>
+
+<li>4. Usuario:</li>
+   <li>EMPRESA_USER</li>
+
+<li>5. Asignar contraseña</li>
+
+<li>6. Activar:</li>
+   <li>CONNECT</li>
+   <li>RESOURCE</li>
+
+<li>7. Asignar tablespace USERS</li>
+    </div>
+
+    <h3 style="margin-top:25px;">Creación mediante SQL</h3>
+
+    <div class="code">
+CREATE USER EMPRESA_USER
+IDENTIFIED BY 123456;
+
+GRANT CONNECT, RESOURCE
+TO EMPRESA_USER;
+
+ALTER USER EMPRESA_USER
+QUOTA UNLIMITED ON USERS;
+    </div>
+
+</section>
+
+        <!-- ALERTAS -->
+
+        <section class="card" id="errores">
+
+            <h2>Mensajes y Alertas</h2>
+
+            <div class="grid">
+
+                <div class="small-card">
+                    <h3>✅ Conexión Exitosa</h3>
+                    <p>La conexión fue realizada correctamente.</p>
+                </div>
+
+                <div class="small-card">
+                    <h3>❌ Credenciales Incorrectas</h3>
+                    <p>Usuario o contraseña inválidos.</p>
+                </div>
+
+                <div class="small-card">
+                    <h3>⚠ Timeout</h3>
+                    <p>El servidor demoró demasiado en responder.</p>
+                </div>
+
+                <div class="small-card">
+                    <h3>🚫 Acceso Denegado</h3>
+                    <p>El usuario no tiene permisos suficientes.</p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- FAQ -->
+
+        <section class="card" id="faq">
+
+            <h2>Preguntas Frecuentes</h2>
+
+            <div class="small-card">
+
+                <h3>¿Qué hace el modo administrativo?</h3>
+
+                <p>
+                    Permite explorar múltiples bases de datos
+                    dependiendo de los permisos del usuario.
+                </p>
+
+            </div>
+
+            <br>
+
+            <div class="small-card">
+
+                <h3>¿La contraseña queda guardada?</h3>
+
+                <p>
+                    Debe almacenarse de forma segura y cifrada
+                    usando sesiones protegidas.
+                </p>
+
+            </div>
+
+        </section>
+
+        <div class="footer">
+            © 2026 EDB - Guia de usuario
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>

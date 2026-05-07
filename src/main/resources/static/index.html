@@ -372,13 +372,13 @@
             <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
           </svg>
         </div>
-        <h1 class="connection-title">Conexión a Base de Datos</h1>
-        <p class="connection-subtitle">Configure su origen de datos para comenzar</p>
+        <h1 class="connection-title">Reportes BD</h1>
+        <p class="connection-subtitle">Conectate a cualquiera de estas BD con tus credenciales.</p>
       </div>
 
       <form id="connectionForm" onsubmit="connect(event)">
         <div class="form-group">
-          <label class="connection-label">Motor de Base de Datos</label>
+          <label class="connection-label">Selecciona el motor de Base de Datos</label>
           <div class="engine-grid">
             <label class="engine-option">
               <input type="radio" name="engine" value="sqlserver" checked>
@@ -424,7 +424,7 @@
 
         <div class="form-group">
           <label class="connection-label" for="databaseName">Nombre de Base de Datos</label>
-          <input type="text" id="databaseName" class="connection-input" placeholder="master" required>
+          <input type="text" id="databaseName" class="connection-input" placeholder="(escribe 'master' si no sabes el nombre)" required>
         </div>
 
         <div class="form-row">
@@ -452,6 +452,12 @@
           <button type="submit" class="btn btn-connect" id="btnSubmitConnect">Conectar</button>
         </div>
       </form>
+      <div style="margin-top: 24px; text-align: center;">
+        <a href="/manual" target="_blank" style="color: rgba(255,255,255,0.4); font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          ¿Necesitas ayuda? Ver manual de configuración
+        </a>
+      </div>
     </div>
   </div>
 
