@@ -1377,6 +1377,128 @@ tbody tr:hover td:first-child {
 
 /* ===== RESPONSIVE ===== */
 
+.hidden {
+    display: none !important;
+}
+
+/* ===== NOTIFICATIONS ===== */
+.notification-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.notification {
+    pointer-events: auto;
+    min-width: 320px;
+    padding: 16px 20px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border-left: 4px solid var(--accent-primary);
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.notification.success { border-left-color: #10b981; }
+.notification.error { border-left-color: #ef4444; }
+.notification.warning { border-left-color: #f59e0b; }
+.notification.info { border-left-color: #3b82f6; }
+
+@keyframes slideInRight {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.notification.fade-out {
+    animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.95); }
+}
+
+/* ===== ADMIN TOGGLE ===== */
+.admin-toggle-group {
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 35px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    user-select: none;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.checkbox-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 22px;
+    width: 22px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.checkbox-container:hover input ~ .checkmark {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.checkbox-container input:checked ~ .checkmark {
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.checkbox-container input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.checkbox-container .checkmark:after {
+    left: 7px;
+    top: 3px;
+    width: 6px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.label-text {
+    margin-left: 5px;
+}
+
 @media (max-width: 768px) {
     .menu-toggle {
         display: flex;
@@ -1607,4 +1729,222 @@ th {
     border-top-color: var(--accent);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
+}
+
+/* ===== CONNECTION SCREEN ===== */
+.connection-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.connection-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.connection-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 480px;
+    padding: 40px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.connection-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.connection-logo {
+    width: 64px;
+    height: 64px;
+    background: var(--accent);
+    border-radius: var(--radius-lg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 20px rgba(26, 86, 219, 0.4);
+}
+
+.connection-title {
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+}
+
+.connection-subtitle {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+.engine-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.engine-option {
+    cursor: pointer;
+}
+
+.engine-option input {
+    display: none;
+}
+
+.engine-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: 12px 8px;
+    text-align: center;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.engine-box i {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.engine-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+}
+
+.engine-option input:checked + .engine-box {
+    background: rgba(26, 86, 219, 0.15);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.engine-option input:checked + .engine-box i {
+    color: var(--accent);
+}
+
+.engine-option input:checked + .engine-box .engine-name {
+    color: white;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.connection-label {
+    display: block;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.connection-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.connection-input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.2);
+}
+
+.connection-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+}
+
+.btn-connect {
+    flex: 1;
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: var(--radius-md);
+}
+
+.btn-connect:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+
+.btn-test {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-test:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.connection-status-msg {
+    margin-top: 16px;
+    font-size: 13px;
+    text-align: center;
+    min-height: 20px;
+    transition: all 0.3s ease;
+}
+
+.msg-success { color: #10b981; }
+.msg-error { color: #ef4444; }
+.msg-info { color: #3b82f6; }
+
+/* Header Disconnect Button */
+.btn-disconnect {
+    background: var(--danger-soft);
+    color: var(--danger);
+    font-weight: 600;
+    border: 1px solid var(--danger);
+}
+
+.btn-disconnect:hover {
+    background: var(--danger);
+    color: white;
 }

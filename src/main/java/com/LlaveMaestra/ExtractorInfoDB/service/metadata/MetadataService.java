@@ -2,11 +2,14 @@ package com.LlaveMaestra.ExtractorInfoDB.service.metadata;
 
 import com.LlaveMaestra.ExtractorInfoDB.config.AppProperties;
 import com.LlaveMaestra.ExtractorInfoDB.dto.ColumnInfo;
+import com.LlaveMaestra.ExtractorInfoDB.dto.DatabaseConnectionDTO;
 import com.LlaveMaestra.ExtractorInfoDB.dto.DatabaseInfo;
 import com.LlaveMaestra.ExtractorInfoDB.dto.TableInfo;
+import com.LlaveMaestra.ExtractorInfoDB.service.DatabaseConnectionService;
+import com.LlaveMaestra.ExtractorInfoDB.strategy.DatabaseEngineStrategy;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -24,23 +27,41 @@ public class MetadataService {
 
     private final JdbcTemplate jdbcTemplate;
     private final AppProperties appProperties;
+    private final DatabaseConnectionService connectionService;
+    private final HttpSession httpSession;
 
     /**
      * Obtiene la lista de bases de datos (catálogos) disponibles en el servidor.
      */
-    @Cacheable("databases")
     public List<DatabaseInfo> getDatabases() throws SQLException {
+        DatabaseConnectionDTO config = connectionService.getConnectionConfig(httpSession.getId());
+        if (config == null) return new ArrayList<>();
+
+        // Si no es modo admin, solo devolvemos la base de datos conectada
+        if (!config.isAdminMode()) {
+            List<DatabaseInfo> singleDb = new ArrayList<>();
+            singleDb.add(new DatabaseInfo(config.getDatabaseName()));
+            return singleDb;
+        }
+
+        DatabaseEngineStrategy strategy = connectionService.getStrategyForSession(httpSession.getId());
         List<DatabaseInfo> databases = new ArrayList<>();
+        
         try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
-            try (ResultSet rs = metaData.getCatalogs()) {
-                while (rs.next()) {
-                    String dbName = rs.getString("TABLE_CAT");
-
-                    if (!appProperties.getExcludedDatabases().contains(dbName)) {
-                        databases.add(new DatabaseInfo(dbName));
+            
+            if (strategy != null && strategy.supportsCatalogs()) {
+                try (ResultSet rs = metaData.getCatalogs()) {
+                    while (rs.next()) {
+                        String dbName = rs.getString("TABLE_CAT");
+                        if (!appProperties.getExcludedDatabases().contains(dbName)) {
+                            databases.add(new DatabaseInfo(dbName));
+                        }
                     }
                 }
+            } else {
+                // Fallback si no soporta catálogos o es motor de esquemas
+                databases.add(new DatabaseInfo(config.getDatabaseName()));
             }
         }
         return databases;
@@ -50,7 +71,6 @@ public class MetadataService {
      * Obtiene las tablas de una base de datos y esquema específicos.
      * Si el esquema es nulo, intenta detectarlo automáticamente.
      */
-    @Cacheable(value = "tables", key = "#database + '-' + #schema")
     public List<TableInfo> getTables(String database, String schema) throws SQLException {
         List<TableInfo> tables = new ArrayList<>();
         try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
@@ -75,7 +95,6 @@ public class MetadataService {
     /**
      * Obtiene las columnas de una tabla específica.
      */
-    @Cacheable(value = "columns", key = "#database + '-' + #schema + '-' + #table")
     public List<ColumnInfo> getColumns(String database, String schema, String table) throws SQLException {
         List<ColumnInfo> columns = new ArrayList<>();
         try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
@@ -117,37 +136,15 @@ public class MetadataService {
      * intenta detectar automáticamente.
      */
     public String resolveSchema(String schema, Connection conn) throws SQLException {
+        DatabaseEngineStrategy strategy = connectionService.getStrategyForSession(httpSession.getId());
+        if (strategy != null) {
+            return strategy.resolveSchema(conn, schema);
+        }
+        
+        // Fallback original si no hay estrategia
         if (schema != null && !schema.isEmpty()) {
             return schema;
         }
-
-        try {
-            String currentSchema = conn.getSchema();
-            if (currentSchema != null && !currentSchema.isEmpty()) {
-                return currentSchema;
-            }
-        } catch (Exception e) {
-            log.warn("No se pudo obtener el esquema mediante conn.getSchema(), usando fallback por motor.");
-        }
-
-        DatabaseMetaData metaData = conn.getMetaData();
-        String dbProduct = metaData.getDatabaseProductName().toLowerCase();
-
-        // MEJORAR EN UN FUTURO, LO HICE RAPIDO
-        if (dbProduct.contains("microsoft")) {
-            return "dbo";
-        } else if (dbProduct.contains("postgresql") || dbProduct.contains("redshift")) {
-            return "public";
-        } else if (dbProduct.contains("oracle") || dbProduct.contains("db2") || dbProduct.contains("hana")) {
-            return metaData.getUserName();
-        } else if (dbProduct.contains("mysql") || dbProduct.contains("mariadb") || dbProduct.contains("sqlite")) {
-            return null;
-        } else if (dbProduct.contains("h2")) {
-            return "PUBLIC";
-        } else if (dbProduct.contains("snowflake")) {
-            return "PUBLIC";
-        }
-
         return null;
     }
 }

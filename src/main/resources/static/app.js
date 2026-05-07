@@ -18,7 +18,7 @@ const state = {
 /* ===== INIT ===== */
 
 document.addEventListener("DOMContentLoaded", () => {
-  loadDatabases();
+  checkConnectionStatus();
 
   document.getElementById("menuToggle").addEventListener("click", () => {
     document.getElementById("sidebar").classList.toggle("open");
@@ -91,6 +91,183 @@ function updateBreadcrumb(db, table) {
     sep.style.display = "none";
     tElem.style.display = "none";
   }
+}
+
+/* ===== CONNECTION LOGIC ===== */
+
+async function checkConnectionStatus() {
+  try {
+    const wrapper = await apiFetch("/api/connection/status");
+    const status = wrapper.data;
+    
+    if (status && status.connected) {
+      hideConnectionScreen();
+      updateStatusBadge(status);
+      
+      // Si no es modo admin, cargamos directamente las tablas de la base de datos conectada
+      if (!status.adminMode && status.databaseName) {
+        loadTables(status.databaseName);
+      } else {
+        loadDatabases();
+      }
+    } else {
+      showConnectionScreen();
+    }
+  } catch (e) {
+    console.error("Error al verificar estado de conexión:", e);
+    showConnectionScreen();
+  }
+}
+
+async function testConnection() {
+  const config = getConnectionFormData();
+  showNotification("Probando conexión...", "info");
+  
+  try {
+    const res = await fetch("/api/connection/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(config)
+    });
+    const wrapper = await res.json();
+    
+    if (wrapper.ok) {
+        showNotification(wrapper.descripcion || "Conexión exitosa", "success");
+    } else {
+        showNotification(wrapper.descripcion || "Error de conexión", "error");
+    }
+  } catch (e) {
+    showNotification("Error al intentar probar la conexión.", "error");
+  }
+}
+
+async function connect(event) {
+  if (event) event.preventDefault();
+  const config = getConnectionFormData();
+  const btn = document.getElementById("btnSubmitConnect");
+  
+  showNotification("Conectando...", "info");
+  btn.disabled = true;
+  
+  try {
+    const res = await fetch("/api/connection/connect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(config)
+    });
+    const wrapper = await res.json();
+    
+    if (wrapper.ok) {
+      const status = wrapper.data;
+      showNotification("¡Conexión establecida!", "success");
+      setTimeout(() => {
+        hideConnectionScreen();
+        updateStatusBadge(status);
+        
+        // Salto directo si no es modo admin
+        if (!status.adminMode) {
+            loadTables(status.databaseName);
+        } else {
+            loadDatabases();
+        }
+      }, 800);
+    } else {
+      showNotification(wrapper.descripcion || "Error al conectar", "error");
+      btn.disabled = false;
+    }
+  } catch (e) {
+    showNotification("Error inesperado al conectar.", "error");
+    btn.disabled = false;
+  }
+}
+
+async function disconnect() {
+  try {
+    await fetch("/api/connection/disconnect", { method: "POST" });
+    showConnectionScreen();
+    document.getElementById("dbList").innerHTML = "";
+    renderWelcomeState();
+  } catch (e) {
+    console.error("Error al desconectar:", e);
+  }
+}
+
+function getConnectionFormData() {
+  return {
+    engine: document.querySelector('input[name="engine"]:checked').value,
+    host: document.getElementById("host").value,
+    port: parseInt(document.getElementById("port").value),
+    databaseName: document.getElementById("databaseName").value,
+    username: document.getElementById("username").value,
+    password: document.getElementById("password").value,
+    adminMode: document.getElementById("adminMode").checked
+  };
+}
+
+function showNotification(message, type = "info") {
+    const container = document.getElementById("notificationContainer");
+    const notification = document.createElement("div");
+    notification.className = `notification ${type}`;
+    
+    const icon = document.createElement("div");
+    icon.className = "notification-icon";
+    // Podríamos añadir iconos SVG aquí según el tipo
+    
+    const text = document.createElement("div");
+    text.className = "notification-text";
+    text.textContent = message;
+    
+    notification.appendChild(icon);
+    notification.appendChild(text);
+    container.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add("fade-out");
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+}
+
+function showConnectionScreen() {
+  document.getElementById("connectionScreen").classList.remove("hidden");
+  document.getElementById("btnDisconnect").style.display = "none";
+  document.getElementById("btnSubmitConnect").disabled = false;
+  document.getElementById("connectionStatusMsg").textContent = "";
+}
+
+function hideConnectionScreen() {
+  document.getElementById("connectionScreen").classList.add("hidden");
+  document.getElementById("btnDisconnect").style.display = "";
+}
+
+function updateStatusBadge(status) {
+  const badge = document.getElementById("statusBadge");
+  const text = document.getElementById("connectionStatusText");
+  
+  if (status.connected) {
+    badge.className = "status-badge";
+    text.textContent = `Conectado a ${status.engine.toUpperCase()} (${status.host})`;
+  } else {
+    badge.className = "status-badge disconnected";
+    text.textContent = "Desconectado";
+  }
+}
+
+function renderWelcomeState() {
+  const view = document.getElementById("viewArea");
+  view.innerHTML = `
+    <div class="welcome-state">
+        <div class="welcome-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <rect x="2" y="2" width="7" height="7" rx="2" fill="currentColor" opacity="0.9"/>
+            <rect x="11" y="2" width="7" height="7" rx="2" fill="currentColor" opacity="0.6"/>
+            <rect x="2" y="11" width="7" height="7" rx="2" fill="currentColor" opacity="0.6"/>
+            <rect x="11" y="11" width="7" height="7" rx="2" fill="currentColor" opacity="0.3"/>
+        </svg>
+        </div>
+        <h2 class="welcome-title">Bienvenido al Explorador de datos</h2>
+        <p class="welcome-desc">Seleccione una base de datos del panel izquierdo para ver sus tablas y contenido.</p>
+    </div>`;
+  updateBreadcrumb(null, null);
 }
 
 /* ===== API ===== */

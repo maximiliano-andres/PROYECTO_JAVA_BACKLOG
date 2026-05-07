@@ -71,8 +71,14 @@
         <div class="header-actions">
             <div class="status-badge" id="statusBadge">
                 <span class="status-dot"></span>
-                Conectado
+                <span id="connectionStatusText">Conectado</span>
             </div>
+            <button id="btnDisconnect" class="btn btn-sm btn-disconnect" style="display:none" onclick="disconnect()">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M10.5 3.5l-7 7M3.5 3.5l7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                Desconectar
+            </button>
         </div>
     </header>
 
@@ -348,6 +354,104 @@
     </div>
     <div class="export-progress-body" id="progressMessages">
       <div class="progress-message">Iniciando proceso...</div>
+    </div>
+  </div>
+
+
+  <!-- ===== CONNECTION SCREEN ===== -->
+    <!-- Notification Toasts -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <div id="connectionScreen" class="connection-screen hidden">
+    <div class="connection-card">
+      <div class="connection-header">
+        <div class="connection-logo">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+          </svg>
+        </div>
+        <h1 class="connection-title">Conexión a Base de Datos</h1>
+        <p class="connection-subtitle">Configure su origen de datos para comenzar</p>
+      </div>
+
+      <form id="connectionForm" onsubmit="connect(event)">
+        <div class="form-group">
+          <label class="connection-label">Motor de Base de Datos</label>
+          <div class="engine-grid">
+            <label class="engine-option">
+              <input type="radio" name="engine" value="sqlserver" checked>
+              <div class="engine-box">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6" y2="6"></line><line x1="6" y1="18" x2="6" y2="18"></line></svg>
+                <span class="engine-name">SQL Server</span>
+              </div>
+            </label>
+            <label class="engine-option">
+              <input type="radio" name="engine" value="mysql">
+              <div class="engine-box">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <span class="engine-name">MySQL</span>
+              </div>
+            </label>
+            <label class="engine-option">
+              <input type="radio" name="engine" value="postgresql">
+              <div class="engine-box">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                <span class="engine-name">Postgres</span>
+              </div>
+            </label>
+            <label class="engine-option">
+              <input type="radio" name="engine" value="oracle">
+              <div class="engine-box">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                <span class="engine-name">Oracle</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="connection-label" for="host">Host / Servidor</label>
+            <input type="text" id="host" class="connection-input" placeholder="localhost" required>
+          </div>
+          <div class="form-group">
+            <label class="connection-label" for="port">Puerto</label>
+            <input type="number" id="port" class="connection-input" placeholder="1433" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="connection-label" for="databaseName">Nombre de Base de Datos</label>
+          <input type="text" id="databaseName" class="connection-input" placeholder="master" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="connection-label" for="username">Usuario</label>
+            <input type="text" id="username" class="connection-input" placeholder="sa" required>
+          </div>
+          <div class="form-group">
+            <label class="connection-label" for="password">Contraseña</label>
+            <input type="password" id="password" class="connection-input" placeholder="••••••••" required>
+          </div>
+        </div>
+                        <div class="form-group admin-toggle-group">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="adminMode">
+                                <span class="checkmark"></span>
+                                <span class="label-text">Modo Administrativo (Explorar todas las BD)</span>
+                            </label>
+                        </div>
+
+                        <div id="connectionStatusMsg" class="connection-status-msg"></div>
+
+        <div class="connection-actions">
+          <button type="button" class="btn btn-test" onclick="testConnection()">Probar Conexión</button>
+          <button type="submit" class="btn btn-connect" id="btnSubmitConnect">Conectar</button>
+        </div>
+      </form>
     </div>
   </div>
 
