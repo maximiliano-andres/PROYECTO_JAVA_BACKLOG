@@ -46,7 +46,6 @@ public class ExportService {
 
         // 4. Ejecutar con Streaming
         long startTime = System.currentTimeMillis();
-        int rowCount = 0;
 
         try (Connection conn = jdbcTemplate.getDataSource().getConnection();
                 PreparedStatement ps = conn.prepareStatement(queryBuilder.sql, ResultSet.TYPE_FORWARD_ONLY,
