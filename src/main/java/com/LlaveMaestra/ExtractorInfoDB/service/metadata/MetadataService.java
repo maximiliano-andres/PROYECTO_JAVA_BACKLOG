@@ -28,14 +28,14 @@ public class MetadataService {
     private final JdbcTemplate jdbcTemplate;
     private final AppProperties appProperties;
     private final DatabaseConnectionService connectionService;
-    private final HttpSession httpSession;
 
     /**
      * Obtiene la lista de bases de datos (catálogos) disponibles en el servidor.
      */
-    public List<DatabaseInfo> getDatabases() throws SQLException {
-        DatabaseConnectionDTO config = connectionService.getConnectionConfig(httpSession.getId());
-        if (config == null) return new ArrayList<>();
+    public List<DatabaseInfo> getDatabases(String sessionId) throws SQLException {
+        DatabaseConnectionDTO config = connectionService.getConnectionConfig(sessionId);
+        if (config == null)
+            return new ArrayList<>();
 
         // Si no es modo admin, solo devolvemos la base de datos conectada
         if (!config.isAdminMode()) {
@@ -44,12 +44,12 @@ public class MetadataService {
             return singleDb;
         }
 
-        DatabaseEngineStrategy strategy = connectionService.getStrategyForSession(httpSession.getId());
+        DatabaseEngineStrategy strategy = connectionService.getStrategyForSession(sessionId);
         List<DatabaseInfo> databases = new ArrayList<>();
-        
+
         try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
-            
+
             if (strategy != null && strategy.supportsCatalogs()) {
                 try (ResultSet rs = metaData.getCatalogs()) {
                     while (rs.next()) {
@@ -71,12 +71,12 @@ public class MetadataService {
      * Obtiene las tablas de una base de datos y esquema específicos.
      * Si el esquema es nulo, intenta detectarlo automáticamente.
      */
-    public List<TableInfo> getTables(String database, String schema) throws SQLException {
+    public List<TableInfo> getTables(String database, String schema, String sessionId) throws SQLException {
         List<TableInfo> tables = new ArrayList<>();
         try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
 
-            String schemaPattern = resolveSchema(schema, conn);
+            String schemaPattern = resolveSchema(schema, conn, sessionId);
             log.info("Buscando tablas en Catálogo: [{}], Esquema: [{}]", database, schemaPattern);
 
             try (ResultSet rs = metaData.getTables(database, schemaPattern, "%", new String[] { "TABLE", "VIEW" })) {
@@ -95,12 +95,13 @@ public class MetadataService {
     /**
      * Obtiene las columnas de una tabla específica.
      */
-    public List<ColumnInfo> getColumns(String database, String schema, String table) throws SQLException {
+    public List<ColumnInfo> getColumns(String database, String schema, String table, String sessionId)
+            throws SQLException {
         List<ColumnInfo> columns = new ArrayList<>();
         try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
 
-            String schemaPattern = resolveSchema(schema, conn);
+            String schemaPattern = resolveSchema(schema, conn, sessionId);
 
             try (ResultSet rs = metaData.getColumns(database, schemaPattern, table, "%")) {
                 while (rs.next()) {
@@ -119,11 +120,11 @@ public class MetadataService {
     /**
      * Verifica si una tabla existe en la base de datos y esquema especificados.
      */
-    public boolean tableExists(String database, String schema, String table) throws SQLException {
+    public boolean tableExists(String database, String schema, String table, String sessionId) throws SQLException {
         try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
 
-            String schemaPattern = resolveSchema(schema, conn);
+            String schemaPattern = resolveSchema(schema, conn, sessionId);
 
             try (ResultSet rs = metaData.getTables(database, schemaPattern, table, null)) {
                 return rs.next();
@@ -135,12 +136,12 @@ public class MetadataService {
      * Resuelve el esquema a utilizar: si se proporciona uno se usa, si no se
      * intenta detectar automáticamente.
      */
-    public String resolveSchema(String schema, Connection conn) throws SQLException {
-        DatabaseEngineStrategy strategy = connectionService.getStrategyForSession(httpSession.getId());
+    public String resolveSchema(String schema, Connection conn, String sessionId) throws SQLException {
+        DatabaseEngineStrategy strategy = connectionService.getStrategyForSession(sessionId);
         if (strategy != null) {
             return strategy.resolveSchema(conn, schema);
         }
-        
+
         // Fallback original si no hay estrategia
         if (schema != null && !schema.isEmpty()) {
             return schema;

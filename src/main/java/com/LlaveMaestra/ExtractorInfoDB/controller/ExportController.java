@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import com.LlaveMaestra.ExtractorInfoDB.config.DynamicDataSourceContextHolder;
+import jakarta.servlet.http.HttpSession;
 
 import java.util.Map;
 
@@ -32,11 +34,13 @@ public class ExportController {
     }
 
     @PostMapping
-    public ResponseEntity<StreamingResponseBody> exportData(@RequestBody ExportRequest request) {
-        log.info("Recibida solicitud de exportación: {} en formato {}", request.getTable(), request.getFormat());
+    public ResponseEntity<StreamingResponseBody> exportData(@RequestBody ExportRequest request, HttpSession session) {
+        log.info("Recibida solicitud de exportación: {} en formato {} para el usuario {}", request.getTable(),
+                request.getFormat(), session.getId());
 
         try {
             // Validar que la estrategia existe antes de empezar
+            String sessionId = session.getId();
             String beanName = request.getFormat().name().toLowerCase() + "ExportStrategy";
             ExportStrategy strategy = strategies.get(beanName);
 
@@ -52,13 +56,17 @@ public class ExportController {
 
             StreamingResponseBody responseBody = outputStream -> {
                 try {
-                    exportService.executeExport(request, outputStream);
+                    // Establecer el contexto del DataSource en el nuevo hilo
+                    DynamicDataSourceContextHolder.setDataSourceKey(sessionId);
+                    
+                    exportService.executeExport(request, outputStream, sessionId);
                     log.info("Exportación completada exitosamente para tabla: {}", request.getTable());
                 } catch (Exception e) {
-                    log.error("CRITICAL: Fallo durante el streaming de exportación para la tabla: {}", request.getTable(), e);
-                    // No podemos cambiar el status code aquí porque ya se enviaron los headers,
-                    // pero al menos registramos el error completo.
+                    log.error("CRITICAL: Fallo durante el streaming de exportación para la tabla: {}",
+                            request.getTable(), e);
                 } finally {
+                    // Limpiar el contexto para evitar fugas en el pool de hilos
+                    DynamicDataSourceContextHolder.clearDataSourceKey();
                     outputStream.flush();
                 }
             };

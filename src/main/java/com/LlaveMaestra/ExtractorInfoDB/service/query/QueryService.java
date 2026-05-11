@@ -23,8 +23,8 @@ public class QueryService {
     /**
      * Obtiene el total de registros en una tabla.
      */
-    public long countTableRows(String database, String schema, String table) {
-        String safeName = securityValidator.getSafeTableName(database, schema, table);
+    public long countTableRows(String database, String schema, String table, String sessionId) {
+        String safeName = securityValidator.getSafeTableName(database, schema, table, sessionId);
         String sql = "SELECT COUNT(*) FROM " + safeName;
         Long count = jdbcTemplate.queryForObject(sql, Long.class);
         return count != null ? count : 0L;
@@ -33,16 +33,16 @@ public class QueryService {
     /**
      * Ejecuta una consulta segura y paginada para visualizar datos.
      */
-    public PageData<Map<String, Object>> getTableData(String database, String schema, String table, int page, int size)
-            throws SQLException {
+    public PageData<Map<String, Object>> getTableData(String database, String schema, String table, int page, int size,
+            String sessionId) throws SQLException {
 
-        securityValidator.validateTableExistence(database, schema, table);
+        securityValidator.validateTableExistence(database, schema, table, sessionId);
 
-        long totalElements = countTableRows(database, schema, table);
+        long totalElements = countTableRows(database, schema, table, sessionId);
         int totalPages = (int) Math.ceil((double) totalElements / size);
         int offset = page * size;
 
-        String safeName = securityValidator.getSafeTableName(database, schema, table);
+        String safeName = securityValidator.getSafeTableName(database, schema, table, sessionId);
 
         // Paginación profesional para SQL Server (2012+)
         String sql = String.format(

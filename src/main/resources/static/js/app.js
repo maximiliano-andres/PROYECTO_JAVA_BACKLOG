@@ -241,14 +241,27 @@ function hideConnectionScreen() {
 
 function updateStatusBadge(status) {
   const badge = document.getElementById("statusBadge");
-  const text = document.getElementById("connectionStatusText");
   
   if (status.connected) {
     badge.className = "status-badge";
-    text.textContent = `Conectado a ${status.engine.toUpperCase()} (${status.host})`;
+    badge.innerHTML = `
+      <span class="status-dot"></span>
+      <div class="badge-info">
+        <span class="badge-label">Usuario:</span>
+        <span class="badge-value">${escapeHTML(status.username)}</span>
+      </div>
+      <div class="badge-separator"></div>
+      <div class="badge-info">
+        <span class="badge-label">Servidor:</span>
+        <span class="badge-value">${status.engine.toUpperCase()} - ${status.host}</span>
+      </div>
+    `;
   } else {
     badge.className = "status-badge disconnected";
-    text.textContent = "Desconectado";
+    badge.innerHTML = `
+      <span class="status-dot"></span>
+      <span id="connectionStatusText">Desconectado</span>
+    `;
   }
 }
 
@@ -401,7 +414,7 @@ function renderTables() {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
     <div class="section-header">
-      <span class="section-title">Tablas</span>
+      <span class="section-title">Tablas de ${state.selectedDb}</span>
       <span class="section-count">${state.tables.length}</span>
     </div>
     <div class="grid" id="tableGrid"></div>`;
@@ -514,9 +527,9 @@ function renderData(columns, data) {
             </svg>
         </div>
         <div class="table-info-text">
-          <h2 class="table-info-name">${escapeHTML(state.selectedTable)}</h2>
+          <h2 class="table-info-name">Datos de la Tabla: ${escapeHTML(state.selectedTable)}</h2>
           <div class="table-info-meta">
-            <span class="meta-tag">${escapeHTML(state.selectedDb)}</span>
+            <span class="meta-tag">DB: ${escapeHTML(state.selectedDb)}</span>
             
           </div>
         </div>

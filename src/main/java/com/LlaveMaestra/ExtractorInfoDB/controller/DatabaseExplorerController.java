@@ -17,6 +17,8 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import jakarta.servlet.http.HttpSession;
+
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/v1/explorer")
@@ -28,9 +30,9 @@ public class DatabaseExplorerController {
     private final QueryService queryService;
 
     @GetMapping("/databases")
-    public ResponseEntity<Wrapper<List<DatabaseInfo>>> listDatabases() throws SQLException {
+    public ResponseEntity<Wrapper<List<DatabaseInfo>>> listDatabases(HttpSession session) throws SQLException {
 
-        List<DatabaseInfo> dbs = metadataService.getDatabases();
+        List<DatabaseInfo> dbs = metadataService.getDatabases(session.getId());
 
         log.info("Databases found ({} en Total): {}", dbs.size(), dbs.stream().map(DatabaseInfo::getName).toList());
 
@@ -40,9 +42,10 @@ public class DatabaseExplorerController {
     @GetMapping("/tables")
     public ResponseEntity<Wrapper<List<TableInfo>>> listTables(
             @RequestParam(required = false) String database,
-            @RequestParam(required = false) String schema) throws SQLException {
+            @RequestParam(required = false) String schema,
+            HttpSession session) throws SQLException {
 
-        List<TableInfo> tablesDb = metadataService.getTables(database, schema);
+        List<TableInfo> tablesDb = metadataService.getTables(database, schema, session.getId());
 
         log.info("TABLAS ENCONTRADAS TOTALES {}", tablesDb.size());
 
@@ -53,9 +56,10 @@ public class DatabaseExplorerController {
     public ResponseEntity<Wrapper<List<ColumnInfo>>> listColumns(
             @RequestParam(required = false) String database,
             @RequestParam(required = false) String schema,
-            @RequestParam String table) throws SQLException {
+            @RequestParam String table,
+            HttpSession session) throws SQLException {
 
-        List<ColumnInfo> columns = metadataService.getColumns(database, schema, table);
+        List<ColumnInfo> columns = metadataService.getColumns(database, schema, table, session.getId());
 
         log.info("COLUMNAS TOTALES EN: DB {}, SCHEMA {}, TABLA {}, total columnas: {}", database, schema, table,
                 columns.size());
@@ -69,11 +73,13 @@ public class DatabaseExplorerController {
             @RequestParam(required = false) String schema,
             @RequestParam String table,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "500") int size) throws SQLException {
-        
-        PageData<Map<String, Object>> pagedData = queryService.getTableData(database, schema, table, page, size);
+            @RequestParam(defaultValue = "500") int size,
+            HttpSession session) throws SQLException {
 
-        log.info("DATOS PAGINADOS EN: DB {}, SCHEMA {}, TABLA {}, página {}, total elementos: {}", 
+        PageData<Map<String, Object>> pagedData = queryService.getTableData(database, schema, table, page, size,
+                session.getId());
+
+        log.info("DATOS PAGINADOS EN: DB {}, SCHEMA {}, TABLA {}, página {}, total elementos: {}",
                 database, schema, table, page, pagedData.getTotalElements());
 
         return ResponseEntity.ok(Wrapper.success("Datos recuperados exitosamente", pagedData));
